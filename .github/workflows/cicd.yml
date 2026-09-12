@@ -72,7 +72,7 @@ jobs:
 
   test:
     runs-on: self-hosted
-    needs: complie
+    needs: security-check
 
     steps:
     - uses: actions/checkout@v5
