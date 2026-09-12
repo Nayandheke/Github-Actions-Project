@@ -49,17 +49,42 @@ jobs:
 
     - name: Trivy Installation
       run: |
-        sudo apt-get install wget gnupg -y
-        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
-        echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
-        sudo apt-get update -y
-        sudo apt-get install trivy -y
+        if ! command -v trivy &> /dev/null; then
+          sudo apt-get install wget gnupg -y
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update -y
+          sudo apt-get install trivy -y
+        fi
         
     - name: Trivy Fs Scan
       run: trivy fs --scanners vuln --format table --output fs-report.json .
 
     - name: Gitleaks installation 
-      run: sudo apt install gitleaks -y
+      run: |
+        if ! command -v gitleaks &> /dev/null; then
+          sudo apt-get install gitleaks -y
+        fi
 
     - name: Gitleaks Code Scan
       run: gitleaks detect source . -r gitleaks-report.json -f json
+
+
+  test:
+    runs-on: self-hosted
+    needs: complie
+
+    steps:
+    - uses: actions/checkout@v5
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v5
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Unit Test Cases
+      run: |
+        chmod +x mvnw
+        ./mvnw test
