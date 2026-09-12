@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   complie:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
     - uses: actions/checkout@v5
@@ -27,7 +27,7 @@ jobs:
 
 
   security-check:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: complie
 
     steps:
